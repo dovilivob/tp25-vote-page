@@ -1,0 +1,34 @@
+{
+  "polls": [
+    {
+      "question": "你是否同意以平均每年至少降低1%之方式逐年降低火力發電廠發電量？",
+      "answers": [
+        "我同意",
+        "我不同意"
+      ],
+      "pollCount": 8,
+      "answersWeight": [
+        6,
+        2
+      ],
+      "selectedAnswer": -1
+    },
+    {
+      "question": "您是否同意確立「停止新建、擴建任何燃煤發電廠或發電機組（包括深澳電廠擴建）」之能源政策？",
+      "answers": [
+        "我同意",
+        "我不同意"
+      ],
+      "pollCount": 10,
+      "answersWeight": [
+        4,
+        6
+      ],
+      "selectedAnswer": -1
+    }
+  ],
+  "auths": {
+    "tz1WrGHRsuicLignpT5JfjPpRJtputim78am": 0,
+    "b": 0
+  }
+}
