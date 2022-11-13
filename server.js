@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express')
 const serveIndex = require('serve-index');
 const fs = require('fs');
 const path = require('path')
@@ -11,17 +11,34 @@ const src_filename = './public/assets/data.json'
 const TOTAL_Q = 2;
 
 app.use(express.static(path.join(__dirname, 'public')));
+const cors = require("cors");
+app.use(cors());
 
-function writeJSON(q, i) {
+function writeJSON(q, i, viewer) {
   fs.readFile(src_filename, 'utf-8', (err, data) => {
-    let jsondata = JSON.parse(data)
-    let targetWeight = jsondata.polls[q].answersWeight[i]
-    console.log(jsondata[0].answersWeight)
-    jsondata[q].answersWeight[i] = targetWeight + 1;
-    jsondata[q].pollCount = jsondata[q].pollCount + 1
-    console.log(jsondata[0].answersWeight)
+    let json_data = JSON.parse(data)
 
-    fs.writeFile(src_filename, JSON.stringify(jsondata), (err) => {
+    if (json_data.auths[viewer] == null)
+      json_data.auths[viewer] = [[0, 0], [0, 0]];
+
+    if (viewer != 'guest') {
+      for (let i of json_data.auths[viewer][q]) {
+        if (i >= 1) return 0;
+      }
+    }
+
+    json_data.auths[viewer][q][i] += 1;
+    let targetWeight = json_data.polls[q].answersWeight[i]
+    console.log(json_data.polls[0].answersWeight)
+    json_data.polls[q].answersWeight[i] = targetWeight + 1;
+    json_data.polls[q].pollCount = json_data.polls[q].pollCount + 1
+
+
+    json_data.polls[q].answersWeight[i] = targetWeight + 1;
+    console.log(json_data.polls[0].answersWeight)
+
+
+    fs.writeFile(src_filename, JSON.stringify(json_data), (err) => {
       if (err) console.log(err)
       else {
         console.log("File written successfully\n");
@@ -32,46 +49,49 @@ function writeJSON(q, i) {
   })
 }
 
-app.use((req, res, next) => {
-  console.log('Time: ', Date.now());
-  next();
-})
-
-app.use('/entry', (req, res, next) => {
-  console.log('Request type: ', req.method);
-  let url_query = url.parse(req.url, true);
-  let qdata = url_query.query;
-  console.log(qdata)
-
-  res.redirect(`/?viewer=${qdata.viewer}`);
-})
-
 
 app.use('/submitvotedata', (req, res, next) => {
   console.log('Request type: ', req.method);
   let url_query = url.parse(req.url, true);
-  let qdata = url_query.query;
-  console.log(qdata)
+  let q_data = url_query.query;
+  console.log(q_data)
 
-  writeJSON(qdata.q, qdata.i);
-  let next_q = parseInt(qdata.q) + 1;
-  res.redirect((next_q < TOTAL_Q) ? `/?q=${next_q}` : '/thanks')
-  res.redirect(`/?q=${parseInt(qdata.q) + 1}`);
+  writeJSON(q_data.q, q_data.i, q_data.viewer);
+
+  let next_q = parseInt(q_data.q) + 1;
+  res.redirect((next_q < TOTAL_Q) ? `/?q=${next_q}&viewer=${q_data.viewer}` : '/thanks')
   next();
 });
 
+app.use('/submitemail', (req, res, next) => {
+  let src_filename = './public/assets/emails.json';
+  console.log('email!!')
+  let url_query = url.parse(req.url, true);
+  let q_data = url_query.query;
+  console.log(`${q_data.viewer} --> ${q_data.email}`)
 
-app.use('/thanks', (req, res, next) => {
-  console.log('Request type: ', req.method);
+  fs.readFile(src_filename, 'utf-8', (err, data) => {
+    let json_data = JSON.parse(data)
+    json_data[q_data.viewer] = q_data.email
 
-})
-// app.use('/public', express.static('public'));
-// app.use('/public', serveIndex('public'));
+    fs.writeFile(src_filename, JSON.stringify(json_data), (err) => {
+      if (err) console.log(err)
+      else {
+        console.log("File written successfully\n");
+        console.log("The written has the following contents:");
+        console.log(fs.readFileSync(src_filename, "utf8"));
+      }
+    })
+  })
+  res.redirect(`/?viewer=${q_data.viewer}`);
+});
+
 
 app.get('/', (req, res) => {
-  res.send('Seccessfully reponse!!')
+  res.send('Successfully response!!')
 })
 
 
+// app.listen(PORT, () => console.log('Server listening at https://tp25.2enter.art/'))
 app.listen(PORT, () => console.log('Server listening at https://tp25.2enter.art/'))
 

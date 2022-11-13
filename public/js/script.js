@@ -1,5 +1,5 @@
 const contractADDR = 'KT1AFq5XorPduoYyWxs5gEyrFK6fVjJVbtCj';
-const uniqueTAG = 'TBC25001';
+const uniqueTAG = 'TBC001';
 const artistADDR = 'tz1Z8Xwm2qWnWWtL3MJ7T3A9uLmaQJiy8Uct';
 
 let canGoNext = false;
@@ -7,35 +7,54 @@ let canGoNext = false;
 let search = new URLSearchParams(window.location.search)
 
 let qNum = search.get('q') ?? 0;
-let poll, polls, pollDOM;
+const viewer_address = search.get('viewer')
+let poll, pollDOM;
 
-let OBJKT_ID = '';
-// polls[0].answersWeight[2] = 1;
-
-// fs.writeFile('../assets/data.json', JSON.stringify(polls), function writeJSON(err) {
-//   if (err) return console.log(err);
-//   console.log(JSON.stringify(polls))
-//   console.log(`writing to ${polls_filename}`)
-// })
-
-GetIdByTag();
+let owner_list = -1;
+get_owner_list();
 
 fetch('../assets/data.json')
   .then(res => res.json())
   .then(json => main(json))
 
-async function GetIdByTag() {
-  let apiUrl = `https://api.akaswap.com/v2/accounts/${artistADDR}/creations?tag=${uniqueTAG}`;
-  let response = await fetch(apiUrl);
-  let dataJson = await response.json();
-  let objktJson = dataJson.tokens[0];
-  OBJKT_ID = objktJson.tokenId;
-  console.log(`objkt id: ${OBJKT_ID}`)
+
+async function get_owner_list() {
+  let api_url = `https://api.akaswap.com/v2/accounts/${artistADDR}/creations?tag=${uniqueTAG}`;
+  let res = await fetch(api_url);
+  let json_data = await res.json();
+  owner_list = await json_data.tokens[0].owners;
+  Object.keys(owner_list).forEach(key => {
+    if (![artistADDR, 'KT1Dn3sambs7KZGW88hH2obZeSzfmCmGvpFo'].includes(key)) {
+      console.log(`| ${key}\t-->\t${owner_list[key]}\t|`);
+    }
+  });
 }
 
-function main(polls) {
+function array_equals(a, b) {
+  return Array.isArray(a) &&
+    Array.isArray(b) &&
+    a.length === b.length &&
+    a.every((val, index) => val === b[index]);
+}
 
-  poll = polls[qNum]
+function main(polls_json) {
+  const viewer_vote_status
+    = polls_json.auths[viewer_address] ?? [[0, 0], [0, 0]];
+  console.log(viewer_vote_status);
+
+
+  console.log(array_equals(viewer_vote_status[0], [0, 0]));
+  if (viewer_vote_status != null && viewer_address != 'guest') {
+    if (!array_equals(viewer_vote_status[0], [0, 0]) && array_equals(viewer_vote_status[1], [0, 0]))
+      qNum = 1;
+    else if (array_equals(viewer_vote_status[0], [0, 0]) && !array_equals(viewer_vote_status[1], [0, 0]))
+      qNum = 0;
+    else if (!array_equals(viewer_vote_status[0], [0, 0]) && !array_equals(viewer_vote_status[1], [0, 0]))
+      window.location = '/thanks';
+  }
+
+
+  poll = polls_json.polls[qNum];
 
   pollDOM = {
     question: document.querySelector(".poll .question"),
@@ -96,9 +115,5 @@ function showResults() {
 
 function goNextPage(polls) {
   let index = poll.selectedAnswer
-  window.location = `/submitvotedata?q=${qNum}&i=${index}`
-  // poll.answersWeight[index]++;
-  // polls[qNum].answersWeight = poll.answersWeight
-  // console.log(poll.answersWeight)
-  // console.log(poll.selectedAnswer)
+  window.location = `/submitvotedata?q=${qNum}&i=${index}&viewer=${viewer_address}`
 }

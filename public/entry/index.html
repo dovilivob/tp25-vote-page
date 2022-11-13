@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome!</title>
+  </head>
+  <body>
+    <div class="main-container">
+      <div class="ask-address">
+        <h3>確認您的錢包地址</h3>
+        <a id="viewer-alias"></a>
+        <a id="viewer-address"></a>
+        <div class="button-container">
+          <button id="no" type="submit" onclick="go_back()">no</button>
+          <button id="yes" type="submit" onclick="go_url()">yes</button>
+        </div>
+      </div>
+
+      <div class="ask-email">
+        <h3>請填寫您的Email地址</h3>
+        <a id="viewer-alias"></a>
+        <a id="viewer-address"></a>
+        <div class="email-form-container">
+          <form name="email_form" id="email-form" method="POST">
+            <input type="email" name="user-email" placeholder="abc@gmail.com" required="required" />
+            <button type="submit" onclick="submit_email()">submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script src="./script.js"></script>
+  </body>
+
+  <style>
+    .main-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    ask-email,
+    ask-address {
+      display: none;
+    }
+
+    button {
+      margin-top: 50px;
+    }
+  </style>
+</html>
